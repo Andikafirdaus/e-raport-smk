@@ -1,0 +1,219 @@
+@extends('layouts.admin')
+
+@section('content')
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Detail Profil Siswa</h1>
+        <a href="{{ route('siswa.index') }}" class="btn btn-secondary btn-sm shadow-sm">
+            <i class="fas fa-arrow-left fa-sm"></i> Kembali
+        </a>
+    </div>
+
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
+    <div class="row">
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <div class="card-body text-center">
+                    @if($siswa->foto)
+                        <img src="{{ asset('storage/foto_siswa/'.$siswa->foto) }}" class="img-profile rounded-circle img-thumbnail" style="width: 150px; height: 150px; object-fit: cover;">
+                    @else
+                        <img src="https://ui-avatars.com/api/?name={{ urlencode($siswa->nama) }}&background=random&size=150" class="rounded-circle img-thumbnail">
+                    @endif
+                    <h5 class="mt-3 font-weight-bold text-dark">{{ $siswa->nama }}</h5>
+                    <p class="text-muted mb-2">NISN: {{ $siswa->nisn }}</p>
+
+                    @php
+                        $badgeColor = 'success';
+                        $statusText = $siswa->status ?? 'Aktif';
+                        if($statusText == 'Lulus') $badgeColor = 'primary';
+                        elseif($statusText == 'Pindah') $badgeColor = 'warning';
+                        elseif($statusText == 'Keluar') $badgeColor = 'danger';
+                    @endphp
+                    <span class="badge badge-{{ $badgeColor }} px-3 py-2 mb-3"><i class="fas fa-info-circle"></i> Status: {{ $statusText }}</span>
+
+                    <hr>
+
+                    <div class="d-flex flex-column gap-2 mt-3">
+                        <button class="btn btn-warning btn-sm mb-2" data-toggle="modal" data-target="#modalEditSiswa">
+                            <i class="fas fa-edit"></i> Edit Profil
+                        </button>
+                        <button class="btn btn-info btn-sm mb-2" data-toggle="modal" data-target="#modalUbahStatus">
+                            <i class="fas fa-exchange-alt"></i> Ubah Status
+                        </button>
+                        <button class="btn btn-danger btn-sm" data-toggle="modal" data-target="#modalHapusSiswa">
+                            <i class="fas fa-trash"></i> Hapus Siswa
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Informasi Pribadi</h6>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless text-dark">
+                        <tr>
+                            <th width="30%">NISN (Username)</th>
+                            <td>: {{ $siswa->nisn }}</td>
+                        </tr>
+                        <tr>
+                            <th>NIS Lokal</th>
+                            <td>: {{ $siswa->nis ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Jenis Kelamin</th>
+                            <td>: {{ $siswa->jenis_kelamin == 'L' ? 'Laki-laki' : 'Perempuan' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Tempat, Tgl Lahir</th>
+                            <td>: {{ $siswa->tempat_lahir ?? '-' }}, {{ $siswa->tanggal_lahir ? date('d F Y', strtotime($siswa->tanggal_lahir)) : '-' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Agama</th>
+                            <td>: {{ $siswa->agama ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Alamat</th>
+                            <td>: {{ $siswa->alamat ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Rombel / Kelas</th>
+                            <td>:
+                                @if($siswa->rombels->isNotEmpty())
+                                    <span class="badge badge-secondary">
+                                        {{ $siswa->rombels->last()->kelas->nama_kelas }}
+                                        ({{ $siswa->rombels->last()->tahunAkademik->tahun_akademik }})
+                                    </span>
+                                @else
+                                    <span class="badge badge-secondary">Belum Diatur</span>
+                                @endif
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalUbahStatus" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">Ubah Status Siswa</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="{{ route('siswa.update_status', $siswa->id) }}" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="modal-body text-dark">
+                    <div class="form-group">
+                        <label>Status Saat Ini: <strong>{{ $siswa->status ?? 'Aktif' }}</strong></label>
+                        <select name="status" class="form-control" required>
+                            <option value="Aktif" {{ ($siswa->status == 'Aktif') ? 'selected' : '' }}>Aktif</option>
+                            <option value="Lulus" {{ ($siswa->status == 'Lulus') ? 'selected' : '' }}>Lulus</option>
+                            <option value="Pindah" {{ ($siswa->status == 'Pindah') ? 'selected' : '' }}>Pindah</option>
+                            <option value="Keluar" {{ ($siswa->status == 'Keluar') ? 'selected' : '' }}>Keluar / DO</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-info">Simpan Status</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalEditSiswa" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title">Edit Data: {{ $siswa->nama }}</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="{{ route('siswa.update', $siswa->id) }}" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="modal-body">
+                    <div class="row text-dark">
+                        <div class="col-md-6 text-left">
+                            <div class="form-group">
+                                <label>NISN</label>
+                                <input type="text" name="nisn" class="form-control" value="{{ $siswa->nisn }}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Nama Lengkap</label>
+                                <input type="text" name="nama" class="form-control" value="{{ $siswa->nama }}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Jenis Kelamin</label>
+                                <select name="jenis_kelamin" class="form-control" required>
+                                    <option value="L" {{ $siswa->jenis_kelamin == 'L' ? 'selected' : '' }}>Laki-laki</option>
+                                    <option value="P" {{ $siswa->jenis_kelamin == 'P' ? 'selected' : '' }}>Perempuan</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-left">
+                            <div class="form-group">
+                                <label>Tanggal Lahir</label>
+                                <input type="date" name="tanggal_lahir" class="form-control" value="{{ $siswa->tanggal_lahir }}">
+                            </div>
+                            <div class="form-group">
+                                <label>Alamat</label>
+                                <textarea name="alamat" class="form-control" rows="2">{{ $siswa->alamat }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-warning">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalHapusSiswa" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Konfirmasi Hapus</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="{{ route('siswa.destroy', $siswa->id) }}" method="POST">
+                @csrf
+                @method('DELETE')
+                <div class="modal-body text-dark text-left">
+                    <p>Yakin mau ngehapus data siswa <strong>{{ $siswa->nama }}</strong>?</p>
+                    <p class="text-danger small">*Data ini bakal hilang permanen dari database.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-danger">Ya, Hapus!</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@endsection
