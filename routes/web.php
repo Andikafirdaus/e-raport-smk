@@ -108,3 +108,14 @@ Route::middleware('auth:siswa')->group(function () {
 
 // --- JALUR LOGOUT ---
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// Safety route: tangani akses GET ke /logout dari browser mobile yang salah redirect
+Route::get('/logout', function () {
+    if (Auth::guard('web')->check())   return redirect('/login-admin');
+    if (Auth::guard('guru')->check())  return redirect('/login-guru');
+    if (Auth::guard('siswa')->check()) return redirect('/login-siswa');
+    return redirect('/login-admin');
+})->name('logout.get');
+
+// --- IMPORT SISWA DARI EXCEL ---
+Route::middleware('auth:web')->post('/dashboard-admin/siswa/import', [\App\Http\Controllers\SiswaImportController::class, 'import'])->name('siswa.import');

@@ -37,6 +37,10 @@
                 </div>
 
                 <div class="col-md-3 text-right">
+                    <button type="button" class="btn btn-info btn-sm shadow-sm mr-1" data-toggle="modal" data-target="#modalImportSiswa"
+                            title="Import data siswa dari file Excel atau CSV">
+                        <i class="fas fa-file-excel fa-sm text-white-50"></i> Import Excel
+                    </button>
                     <button type="button" class="btn btn-success btn-sm shadow-sm" data-toggle="modal" data-target="#modalTambahSiswa">
                         <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Siswa
                     </button>
@@ -178,10 +182,6 @@
             <div class="d-flex justify-content-end mt-3">
                 {{ $siswas->links() }}
             </div>
-
-            <div class="d-flex justify-content-end mt-3">
-                {{ $siswas->links() }}
-            </div>
         </div>
     </div>
 </div>
@@ -260,3 +260,90 @@
     </div>
 </div>
 @endsection
+
+{{-- ===== MODAL IMPORT EXCEL ===== --}}
+<div class="modal fade" id="modalImportSiswa" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title"><i class="fas fa-file-excel mr-2"></i>Import Siswa dari Excel / CSV</h5>
+                <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+            </div>
+            <form action="{{ route('siswa.import') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-body">
+                    {{-- Error import --}}
+                    @if(session('import_errors'))
+                        <div class="alert alert-warning py-2">
+                            <strong><i class="fas fa-exclamation-triangle mr-1"></i>Beberapa baris dilewati:</strong>
+                            <ul class="mb-0 mt-1 small">
+                                @foreach(session('import_errors') as $err)
+                                    <li>{{ $err }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    @error('file_import')
+                        <div class="alert alert-danger py-2 small">{{ $message }}</div>
+                    @enderror
+
+                    <div class="form-group">
+                        <label class="font-weight-bold">Pilih File Excel / CSV</label>
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="fileImport" name="file_import"
+                                   accept=".xlsx,.xls,.csv" required>
+                            <label class="custom-file-label" for="fileImport">Pilih file...</label>
+                        </div>
+                        <small class="text-muted">Format: .xlsx, .xls, atau .csv — Maks 5MB</small>
+                    </div>
+
+                    <div class="alert alert-light border py-2 mb-0">
+                        <p class="font-weight-bold mb-1 small"><i class="fas fa-info-circle text-info mr-1"></i>Format kolom yang diterima:</p>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered mb-0 small">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th>Nama Kolom</th>
+                                        <th>Keterangan</th>
+                                        <th>Wajib?</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td><code>nisn</code></td><td>10 digit NISN</td><td><span class="badge badge-danger">Wajib</span></td></tr>
+                                    <tr><td><code>nis</code></td><td>NIS sekolah</td><td>Opsional</td></tr>
+                                    <tr><td><code>nama</code></td><td>Nama lengkap</td><td><span class="badge badge-danger">Wajib</span></td></tr>
+                                    <tr><td><code>jenis_kelamin</code></td><td>L atau P</td><td>Opsional</td></tr>
+                                    <tr><td><code>tempat_lahir</code></td><td>Kota lahir</td><td>Opsional</td></tr>
+                                    <tr><td><code>tanggal_lahir</code></td><td>YYYY-MM-DD</td><td>Opsional</td></tr>
+                                    <tr><td><code>alamat</code></td><td>Alamat lengkap</td><td>Opsional</td></tr>
+                                    <tr><td><code>status</code></td><td>Aktif / Tidak Aktif</td><td>Opsional</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="mb-0 mt-1 small text-muted">Password default semua siswa yang diimport: <strong>1234</strong></p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-info" id="btnImport">
+                        <i class="fas fa-upload mr-1"></i>Import Sekarang
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Show filename on file input change
+document.getElementById('fileImport').addEventListener('change', function() {
+    var fname = this.files[0] ? this.files[0].name : 'Pilih file...';
+    this.nextElementSibling.textContent = fname;
+});
+// Disable button on submit to prevent double click
+document.querySelector('#modalImportSiswa form').addEventListener('submit', function() {
+    document.getElementById('btnImport').disabled = true;
+    document.getElementById('btnImport').innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Memproses...';
+});
+</script>
