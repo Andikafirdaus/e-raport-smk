@@ -521,6 +521,13 @@
             </a>
         </li>
 
+        <li class="nav-item {{ request()->is('dashboard-admin/pengaturan*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('pengaturan.index') }}">
+                <i class="fas fa-fw fa-sliders-h"></i>
+                <span>Pengaturan Penilaian</span>
+            </a>
+        </li>
+
         <div class="nav-divider" style="margin-top:auto;"></div>
         <div class="text-center py-2">
             <button class="sidebar-toggle-btn" id="sidebarToggle" title="Collapse Sidebar">

@@ -43,24 +43,27 @@
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-bordered table-hover text-center align-middle" style="min-width: 1600px;">
+                    <table class="table table-bordered table-hover text-center align-middle" style="min-width: 2000px;">
                         <thead class="bg-info text-white">
                             <tr>
                                 <th class="align-middle" rowspan="2" width="3%">No</th>
                                 <th class="align-middle" rowspan="2" width="12%">Mata Pelajaran</th>
-                                <th colspan="5">Nilai Mentah (Dapat Diedit)</th>
-                                <th class="align-middle" rowspan="2" width="8%">Keterampilan<br><small>(Mentah)</small></th>
-                                <th class="align-middle" rowspan="2" width="20%">Absensi & Catatan Wali</th>
-                                <th class="align-middle" rowspan="2" width="8%">Nilai<br>Pengetahuan</th>
-                                <th class="align-middle" rowspan="2" width="8%">Nilai Akhir<br><small>(Akumulasi)</small></th>
-                                <th class="align-middle" rowspan="2" width="7%">Sikap</th>
+                                <th colspan="8">Nilai Mentah (Dapat Diedit)</th>
+                                <th class="align-middle" rowspan="2" width="7%">Keterampilan<br><small>(Mentah)</small></th>
+                                <th class="align-middle" rowspan="2" width="18%">Absensi & Catatan Wali</th>
+                                <th class="align-middle" rowspan="2" width="7%">Nilai<br>Pengetahuan</th>
+                                <th class="align-middle" rowspan="2" width="7%">Nilai Akhir<br><small>(Akumulasi)</small></th>
+                                <th class="align-middle" rowspan="2" width="6%">Sikap</th>
                             </tr>
                             <tr>
-                                <th width="5%">UH1</th>
-                                <th width="5%">UH2</th>
-                                <th width="5%">UH3</th>
-                                <th width="5%">PTS</th>
-                                <th width="5%">PAS</th>
+                                <th width="4%">UH1</th>
+                                <th width="4%">UH2</th>
+                                <th width="4%">UH3</th>
+                                <th width="4%">UH4</th>
+                                <th width="4%">UH5</th>
+                                <th width="5%">REMEDIAL</th>
+                                <th width="4%">PTS</th>
+                                <th width="4%">PAS</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -71,12 +74,17 @@
 
                                 <td class="align-middle">
                                     <input type="hidden" name="nilai[{{ $n->id }}][id]" value="{{ $n->id }}">
-                                    <input type="number" class="form-control form-control-sm text-center" name="nilai[{{ $n->id }}][uh_1]" value="{{ $n->uh_1 }}">
+                                    <input type="number" class="form-control form-control-sm text-center" name="nilai[{{ $n->id }}][uh_1]" value="{{ $n->uh_1 }}" min="0" max="100" step="0.01">
                                 </td>
-                                <td class="align-middle"><input type="number" class="form-control form-control-sm text-center" name="nilai[{{ $n->id }}][uh_2]" value="{{ $n->uh_2 }}"></td>
-                                <td class="align-middle"><input type="number" class="form-control form-control-sm text-center" name="nilai[{{ $n->id }}][uh_3]" value="{{ $n->uh_3 }}"></td>
-                                <td class="align-middle"><input type="number" class="form-control form-control-sm text-center" name="nilai[{{ $n->id }}][pts]" value="{{ $n->pts }}"></td>
-                                <td class="align-middle"><input type="number" class="form-control form-control-sm text-center" name="nilai[{{ $n->id }}][pas]" value="{{ $n->pas }}"></td>
+                                <td class="align-middle"><input type="number" class="form-control form-control-sm text-center" name="nilai[{{ $n->id }}][uh_2]" value="{{ $n->uh_2 }}" min="0" max="100" step="0.01"></td>
+                                <td class="align-middle"><input type="number" class="form-control form-control-sm text-center" name="nilai[{{ $n->id }}][uh_3]" value="{{ $n->uh_3 }}" min="0" max="100" step="0.01"></td>
+                                <td class="align-middle"><input type="number" class="form-control form-control-sm text-center" name="nilai[{{ $n->id }}][uh_4]" value="{{ $n->uh_4 }}" min="0" max="100" step="0.01" placeholder="-"></td>
+                                <td class="align-middle"><input type="number" class="form-control form-control-sm text-center" name="nilai[{{ $n->id }}][uh_5]" value="{{ $n->uh_5 }}" min="0" max="100" step="0.01" placeholder="-"></td>
+                                <td class="align-middle" style="background-color: #fff8e1;">
+                                    <input type="number" class="form-control form-control-sm text-center font-weight-bold text-warning" name="nilai[{{ $n->id }}][remedial]" value="{{ $n->remedial }}" min="0" max="100" step="0.01" placeholder="-" title="Jika diisi & ≥ KKM, nilai pengetahuan akan mentok di KKM">
+                                </td>
+                                <td class="align-middle"><input type="number" class="form-control form-control-sm text-center" name="nilai[{{ $n->id }}][pts]" value="{{ $n->pts }}" min="0" max="100" step="0.01"></td>
+                                <td class="align-middle"><input type="number" class="form-control form-control-sm text-center" name="nilai[{{ $n->id }}][pas]" value="{{ $n->pas }}" min="0" max="100" step="0.01"></td>
 
                                 <td class="align-middle font-weight-bold">{{ $n->nilai_keterampilan ?? '-' }}</td>
 
@@ -116,7 +124,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="12" class="text-center text-muted py-4">
+                                <td colspan="15" class="text-center text-muted py-4">
                                     <i class="fas fa-box-open mb-3" style="font-size: 30px;"></i><br>
                                     Belum ada data nilai dari Guru Mata Pelajaran.
                                 </td>

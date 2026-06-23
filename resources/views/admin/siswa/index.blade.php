@@ -186,74 +186,349 @@
     </div>
 </div>
 
-<div class="modal fade" id="modalTambahSiswa" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+<div class="modal fade" id="modalTambahSiswa" tabindex="-1" role="dialog" aria-labelledby="modalTambahSiswaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="exampleModalLabel">Tambah Data Siswa</h5>
+            <div class="modal-header text-white" style="background-color: #0a2342;">
+                <h5 class="modal-title" id="modalTambahSiswaLabel">
+                    <i class="fas fa-user-plus mr-2"></i> Tambah Data Siswa
+                </h5>
                 <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
 
-            <form action="{{ route('siswa.store') }}" method="POST">
+            <form action="{{ route('siswa.store') }}" method="POST" id="formTambahSiswa">
                 @csrf
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>NISN</label>
-                                <input type="text" name="nisn" class="form-control" required maxlength="10">
-                            </div>
-                            <div class="form-group">
-                                <label>NIS (Lokal)</label>
-                                <input type="text" name="nis" class="form-control">
-                            </div>
-                            <div class="form-group">
-                                <label>Nama Lengkap</label>
-                                <input type="text" name="nama" class="form-control" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Jenis Kelamin</label>
-                                <select name="jenis_kelamin" class="form-control" required>
-                                    <option value="">-- Pilih --</option>
-                                    <option value="L">Laki-laki (L)</option>
-                                    <option value="P">Perempuan (P)</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Daftarkan ke Kelas (Opsional)</label>
-                                <select name="rombel_id" class="form-control">
-                                    <option value="">-- Jangan Masukkan Kelas Dulu --</option>
-                                    @foreach($rombels as $r)
-                                        <option value="{{ $r->id }}">{{ $r->kelas->nama_kelas }} ({{ $r->tahunAkademik->tahun_akademik }})</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Tempat Lahir</label>
-                                <input type="text" name="tempat_lahir" class="form-control">
-                            </div>
-                            <div class="form-group">
-                                <label>Tanggal Lahir</label>
-                                <input type="date" name="tanggal_lahir" class="form-control">
-                            </div>
-                            <div class="form-group">
-                                <label>Agama</label>
-                                <input type="text" name="agama" class="form-control">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Alamat Lengkap</label>
-                        <textarea name="alamat" class="form-control" rows="2"></textarea>
-                    </div>
+
+                {{-- ===== NAV TABS ===== --}}
+                <div class="modal-body pb-0">
+                    <ul class="nav nav-tabs" id="siswaTab" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="tab-identitas-link" data-toggle="tab" href="#tab-identitas" role="tab">
+                                <i class="fas fa-id-card mr-1"></i> Identitas Pribadi
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="tab-riwayat-link" data-toggle="tab" href="#tab-riwayat" role="tab">
+                                <i class="fas fa-school mr-1"></i> Riwayat & Asal Sekolah
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="tab-ortu-link" data-toggle="tab" href="#tab-ortu" role="tab">
+                                <i class="fas fa-users mr-1"></i> Data Orang Tua & Wali
+                            </a>
+                        </li>
+                    </ul>
                 </div>
+
+                <div class="tab-content modal-body pt-3" id="siswaTabContent" style="max-height: 65vh; overflow-y: auto;">
+
+                    {{-- ======================== --}}
+                    {{-- TAB 1: IDENTITAS PRIBADI --}}
+                    {{-- ======================== --}}
+                    <div class="tab-pane fade show active" id="tab-identitas" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>NISN <span class="text-danger">*</span></label>
+                                    <input type="text" name="nisn" class="form-control" maxlength="10" required placeholder="10 digit NISN">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>NIS (Lokal)</label>
+                                    <input type="text" name="nis" class="form-control" placeholder="NIS sekolah">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Nama Lengkap <span class="text-danger">*</span></label>
+                                    <input type="text" name="nama" class="form-control" required placeholder="Nama lengkap siswa">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Jenis Kelamin <span class="text-danger">*</span></label>
+                                    <select name="jenis_kelamin" class="form-control" required>
+                                        <option value="">-- Pilih --</option>
+                                        <option value="L">Laki-laki (L)</option>
+                                        <option value="P">Perempuan (P)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Tempat Lahir</label>
+                                    <input type="text" name="tempat_lahir" class="form-control" placeholder="Kota lahir">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Tanggal Lahir</label>
+                                    <input type="date" name="tanggal_lahir" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Agama</label>
+                                    <select name="agama" class="form-control">
+                                        <option value="">-- Pilih --</option>
+                                        <option value="Islam">Islam</option>
+                                        <option value="Kristen">Kristen</option>
+                                        <option value="Katolik">Katolik</option>
+                                        <option value="Hindu">Hindu</option>
+                                        <option value="Buddha">Buddha</option>
+                                        <option value="Konghucu">Konghucu</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Anak ke-</label>
+                                    <input type="number" name="anak_ke" class="form-control" min="1" placeholder="Contoh: 2">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Status Keluarga</label>
+                                    <select name="status_keluarga" class="form-control">
+                                        <option value="">-- Pilih --</option>
+                                        <option value="Kandung">Kandung</option>
+                                        <option value="Tiri">Tiri</option>
+                                        <option value="Angkat">Angkat</option>
+                                        <option value="Yatim">Yatim</option>
+                                        <option value="Piatu">Piatu</option>
+                                        <option value="Yatim Piatu">Yatim Piatu</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Telepon Siswa</label>
+                                    <input type="text" name="telp_siswa" class="form-control" placeholder="No. HP siswa">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Email Siswa</label>
+                                    <input type="email" name="email_siswa" class="form-control" placeholder="email@siswa.com">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Daftarkan ke Kelas (Opsional)</label>
+                                    <select name="rombel_id" class="form-control">
+                                        <option value="">-- Jangan Masukkan Kelas Dulu --</option>
+                                        @foreach($rombels as $r)
+                                            <option value="{{ $r->id }}">{{ $r->kelas->nama_kelas }} ({{ $r->tahunAkademik->tahun_akademik }})</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Alamat Lengkap</label>
+                            <textarea name="alamat" class="form-control" rows="2" placeholder="Alamat domisili siswa"></textarea>
+                        </div>
+                    </div>
+                    {{-- END TAB 1 --}}
+
+                    {{-- ================================== --}}
+                    {{-- TAB 2: RIWAYAT & ASAL SEKOLAH     --}}
+                    {{-- ================================== --}}
+                    <div class="tab-pane fade" id="tab-riwayat" role="tabpanel">
+                        <p class="text-muted small mb-3"><i class="fas fa-info-circle mr-1"></i> Data riwayat penerimaan di sekolah ini.</p>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Diterima di Kelas</label>
+                                    <input type="text" name="diterima_di_kelas" class="form-control" placeholder="Contoh: X TKJ 1">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Tanggal Diterima</label>
+                                    <input type="date" name="diterima_pada_tanggal" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Diterima Semester</label>
+                                    <select name="diterima_semester" class="form-control">
+                                        <option value="">-- Pilih --</option>
+                                        <option value="Ganjil">Ganjil</option>
+                                        <option value="Genap">Genap</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Nama Sekolah Asal</label>
+                                    <input type="text" name="asal_sekolah_nama" class="form-control" placeholder="SMP / MTs asal">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Alamat Sekolah Asal</label>
+                            <textarea name="asal_sekolah_alamat" class="form-control" rows="2" placeholder="Alamat sekolah asal"></textarea>
+                        </div>
+
+                        <hr class="my-3">
+                        <p class="font-weight-bold text-secondary small mb-2"><i class="fas fa-file-alt mr-1"></i> Data Ijazah & SKHU</p>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Tahun Ijazah</label>
+                                    <input type="text" name="ijazah_tahun" class="form-control" maxlength="4" placeholder="Contoh: 2023">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Nomor Ijazah</label>
+                                    <input type="text" name="ijazah_nomor" class="form-control" placeholder="No. seri ijazah">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Tahun SKHU</label>
+                                    <input type="text" name="skhu_tahun" class="form-control" maxlength="4" placeholder="Contoh: 2023">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Nomor SKHU</label>
+                                    <input type="text" name="skhu_nomor" class="form-control" placeholder="No. seri SKHU">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {{-- END TAB 2 --}}
+
+                    {{-- ================================== --}}
+                    {{-- TAB 3: DATA ORANG TUA & WALI      --}}
+                    {{-- ================================== --}}
+                    <div class="tab-pane fade" id="tab-ortu" role="tabpanel">
+
+                        {{-- DATA ORANG TUA --}}
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="border-left border-primary pl-2">
+                                <h6 class="mb-0 font-weight-bold text-primary">Data Orang Tua</h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Nama Ayah</label>
+                                    <input type="text" name="nama_ayah" class="form-control" placeholder="Nama lengkap ayah">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Nama Ibu</label>
+                                    <input type="text" name="nama_ibu" class="form-control" placeholder="Nama lengkap ibu">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Pekerjaan Ayah</label>
+                                    <input type="text" name="pekerjaan_ayah" class="form-control" placeholder="Contoh: Wiraswasta">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Pekerjaan Ibu</label>
+                                    <input type="text" name="pekerjaan_ibu" class="form-control" placeholder="Contoh: Ibu Rumah Tangga">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Telepon Orang Tua</label>
+                                    <input type="text" name="telp_orang_tua" class="form-control" placeholder="No. HP orang tua">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                {{-- Kolom kosong, bisa diisi field lain nanti --}}
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Alamat Orang Tua</label>
+                            <textarea name="alamat_orang_tua" class="form-control" rows="2" placeholder="Alamat lengkap orang tua"></textarea>
+                        </div>
+
+                        <hr class="my-3">
+
+                        {{-- DATA WALI --}}
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="border-left border-secondary pl-2">
+                                <h6 class="mb-0 font-weight-bold text-secondary">Data Wali <small class="font-weight-normal">(jika ada)</small></h6>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Nama Wali</label>
+                                    <input type="text" name="nama_wali" class="form-control" placeholder="Nama lengkap wali">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Pekerjaan Wali</label>
+                                    <input type="text" name="pekerjaan_wali" class="form-control" placeholder="Pekerjaan wali">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Telepon Wali</label>
+                                    <input type="text" name="telp_wali" class="form-control" placeholder="No. HP wali">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                {{-- Kolom kosong --}}
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Alamat Wali</label>
+                            <textarea name="alamat_wali" class="form-control" rows="2" placeholder="Alamat lengkap wali (jika berbeda dengan orang tua)"></textarea>
+                        </div>
+                    </div>
+                    {{-- END TAB 3 --}}
+
+                </div>
+                {{-- END TAB CONTENT --}}
+
                 <div class="modal-footer">
+                    <small class="text-muted mr-auto">
+                        <i class="fas fa-info-circle"></i> Field bertanda <span class="text-danger">*</span> wajib diisi. Field lainnya bisa diisi nanti.
+                    </small>
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">Simpan Data</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save mr-1"></i> Simpan Data Siswa
+                    </button>
                 </div>
             </form>
         </div>

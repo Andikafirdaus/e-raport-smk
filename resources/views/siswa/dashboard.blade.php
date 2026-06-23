@@ -5,7 +5,7 @@
 
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <div>
-            <h1 class="h3 mb-0 text-gray-800">Halo, {{ $siswa->nama }}! 👋</h1>
+            <h1 class="h3 mb-0 text-gray-800">Halo, {{ $siswa->nama }}!</h1>
             <p class="mb-0 text-muted small">Selamat datang di Portal Siswa E-Rapor SMK</p>
         </div>
     </div>

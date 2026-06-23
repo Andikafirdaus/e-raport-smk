@@ -8,9 +8,20 @@ use Illuminate\Support\Facades\Hash; // Tambahan untuk enkripsi password
 
 class GuruController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $gurus = Guru::all();
+        $query = Guru::query();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_guru', 'LIKE', "%{$search}%")
+                  ->orWhere('nip', 'LIKE', "%{$search}%");
+            });
+        }
+
+        $gurus = $query->latest()->paginate(15)->appends($request->only('search'));
+
         return view('admin.guru.index', compact('gurus'));
     }
 

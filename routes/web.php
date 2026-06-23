@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\KelasController;
 use App\Http\Controllers\JurusanController;
@@ -14,6 +15,10 @@ use App\Http\Controllers\NilaiController;
 use App\Http\Controllers\WaliKelasController;
 use App\Http\Controllers\JadwalMengajarController;
 use App\Http\Controllers\DashboardSiswaController;
+use App\Http\Controllers\PengaturanController;
+
+// --- ROOT URL → Redirect ke Login Admin ---
+Route::get('/', fn() => redirect('/login-admin'));
 
 // --- JALUR PINTU ADMIN ---
 Route::get('/login-admin', [AuthController::class, 'loginAdmin'])->name('login.admin');
@@ -67,6 +72,10 @@ Route::middleware('auth:web')->prefix('dashboard-admin')->group(function () {
     Route::post('rombel/{id}/remove', [RombelController::class, 'removeSiswa']);
     Route::resource('rombel', RombelController::class);
     Route::resource('jadwal', JadwalMengajarController::class);
+
+    // Pengaturan Bobot Penilaian
+    Route::get('/pengaturan', [PengaturanController::class, 'index'])->name('pengaturan.index');
+    Route::post('/pengaturan/update', [PengaturanController::class, 'update'])->name('pengaturan.update');
 
     // Status update
     Route::put('/siswa/{id}/status', [SiswaController::class, 'updateStatus'])->name('siswa.update_status');

@@ -74,7 +74,7 @@
         .brand-sub  { font-size: 0.68rem; font-weight: 400; color: var(--text-secondary); }
         .nav-section-label {
             font-size: 0.62rem; font-weight: 700; letter-spacing: 1.2px;
-            text-transform: uppercase; color: var(--text-muted);
+            text-transform: uppercase; color: #212529;
             padding: 1rem 1.25rem 0.4rem;
         }
         .nav-divider { height: 1px; background: var(--sidebar-border); margin: 0.5rem 1rem; }
@@ -82,7 +82,7 @@
         #accordionSidebar .nav-link {
             display: flex; align-items: center; gap: 0.7rem;
             padding: 0.6rem 1.25rem; font-size: 0.82rem; font-weight: 500;
-            color: var(--text-secondary); border-radius: var(--radius-md);
+            color: #5a5c69;
             margin: 1px 0.5rem; text-decoration: none; transition: all 0.18s;
         }
         #accordionSidebar .nav-link:hover { background: var(--nav-hover-bg); color: var(--text-primary); }
@@ -184,7 +184,7 @@
         [data-theme="dark"] .bg-light { background: #374151 !important; }
         [data-theme="dark"] .bg-white { background: var(--card-bg) !important; }
         [data-theme="dark"] .page-item .page-link { background: var(--card-bg) !important; border-color: rgba(255,255,255,0.15) !important; color: var(--text-primary) !important; }
-        [data-theme="dark"] .page-item.active .page-link { background: #22c55e !important; color: #fff !important; }
+        [data-theme="dark"] .page-item.active .page-link { background: #000000 !important; color: #fff !important; }
     </style>
 </head>
 

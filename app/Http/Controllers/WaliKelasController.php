@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Rombel;
 use App\Models\Siswa;
 use App\Models\CatatanWali;
+use App\Models\Pengaturan;
 
 
 class WaliKelasController extends Controller
@@ -80,41 +81,88 @@ public function simpanCatatan(Request $request, $siswa_id)
         );
 
         // 2. Simpan Nilai Mentah + AUTO KALKULASI Nilai Pengetahuan & Nilai Akhir
+        //    Menggunakan mesin perhitungan DINAMIS yang identik dengan NilaiController
         if ($request->has('nilai')) {
+
+            // 2a. Ambil bobot dari tabel pengaturans (TIDAK hardcoded)
+            $bobotUh  = (int) Pengaturan::getValue('bobot_uh', 40);
+            $bobotPts = (int) Pengaturan::getValue('bobot_pts', 30);
+            $bobotPas = (int) Pengaturan::getValue('bobot_pas', 30);
+
             foreach ($request->nilai as $nilai_id => $data_nilai) {
 
-                // Ambil angka yang diinput (jadikan angka 0 kalau kosong)
-                $uh1 = $data_nilai['uh_1'] ?? 0;
-                $uh2 = $data_nilai['uh_2'] ?? 0;
-                $uh3 = $data_nilai['uh_3'] ?? 0;
-                $pts = $data_nilai['pts']  ?? 0;
-                $pas = $data_nilai['pas']  ?? 0;
+                // 2b. Ambil KKM dari mapel yang terkait dengan record nilai ini
+                $nilaiRecord = DB::table('nilais')
+                    ->join('mapels', 'nilais.mapel_id', '=', 'mapels.id')
+                    ->select('mapels.kkm', 'nilais.nilai_keterampilan')
+                    ->where('nilais.id', $nilai_id)
+                    ->first();
 
-                // RUMUS 1: Hitung Nilai Pengetahuan (Rata-rata dari 5 ujian)
-                // Jika sekolahmu punya bobot berbeda (misal PTS dikali 2), rumusnya tinggal diganti di sini.
-                $nilai_pengetahuan = ($uh1 + $uh2 + $uh3 + $pts + $pas) / 5;
+                $kkm          = $nilaiRecord->kkm ?? 75;
+                $keterampilan = (float) ($nilaiRecord->nilai_keterampilan ?? 0);
 
-                // Ambil Nilai Keterampilan mentah yang sudah ada di database
-                $nilai_lama = DB::table('nilais')->where('id', $nilai_id)->first();
-                $keterampilan = $nilai_lama->nilai_keterampilan ?? 0;
+                // ============================
+                // HITUNG RATA-RATA UH DINAMIS
+                // Hanya hitung UH yang terisi (not null & not empty string)
+                // ============================
+                $uhFields = ['uh_1', 'uh_2', 'uh_3', 'uh_4', 'uh_5'];
+                $uhValues = [];
 
-                // RUMUS 2: Hitung Nilai Akhir sesuai logikamu (Pengetahuan + Keterampilan dibagi 2)
+                foreach ($uhFields as $field) {
+                    $val = $data_nilai[$field] ?? null;
+                    if ($val !== null && $val !== '') {
+                        $uhValues[] = (float) $val;
+                    }
+                }
+
+                // Jika tidak ada UH yang terisi sama sekali, rata-rata = 0
+                $rataUh = count($uhValues) > 0
+                    ? array_sum($uhValues) / count($uhValues)
+                    : 0;
+
+                $pts      = isset($data_nilai['pts']) && $data_nilai['pts'] !== '' ? (float) $data_nilai['pts'] : 0;
+                $pas      = isset($data_nilai['pas']) && $data_nilai['pas'] !== '' ? (float) $data_nilai['pas'] : 0;
+                $remedial = isset($data_nilai['remedial']) && $data_nilai['remedial'] !== '' ? (float) $data_nilai['remedial'] : null;
+
+                // ============================
+                // RUMUS NILAI PENGETAHUAN DINAMIS
+                // ============================
+                $nilai_pengetahuan = ($rataUh * $bobotUh / 100)
+                                   + ($pts    * $bobotPts / 100)
+                                   + ($pas    * $bobotPas / 100);
+
+                // ============================
+                // LOGIKA REMEDIAL KETAT
+                // Jika nilai_pengetahuan < KKM:
+                //   Cek apakah remedial diinput DAN nilainya >= KKM
+                //   Jika ya → nilai_pengetahuan MENTOK di nilai KKM
+                // ============================
+                if ($nilai_pengetahuan < $kkm && $remedial !== null && $remedial >= $kkm) {
+                    $nilai_pengetahuan = $kkm;
+                }
+
+                // ============================
+                // HITUNG NILAI AKHIR RAPOR
+                // ============================
                 $nilai_akhir = ($nilai_pengetahuan + $keterampilan) / 2;
 
                 // Simpan semuanya kembali ke database
                 DB::table('nilais')
-                ->where('id', $nilai_id)
-                ->where('siswa_id', $siswa_id) // Tambahkan kunci pengaman ini agar tidak salah sasaran
-                ->update([
-                    'uh_1' => $uh1,
-                    'uh_2' => $uh2,
-                    'uh_3' => $uh3,
-                    'pts'  => $pts,
-                    'pas'  => $pas,
-                    'sikap' => !empty($data_nilai['sikap']) ? $data_nilai['sikap'] : null,
-                    'nilai_pengetahuan' => round($nilai_pengetahuan),
-                    'nilai_akhir' => round($nilai_akhir),
-                ]);
+                    ->where('id', $nilai_id)
+                    ->where('siswa_id', $siswa_id) // Kunci pengaman agar tidak salah sasaran
+                    ->update([
+                        'uh_1'              => ($data_nilai['uh_1'] ?? '') !== '' ? $data_nilai['uh_1'] : null,
+                        'uh_2'              => ($data_nilai['uh_2'] ?? '') !== '' ? $data_nilai['uh_2'] : null,
+                        'uh_3'              => ($data_nilai['uh_3'] ?? '') !== '' ? $data_nilai['uh_3'] : null,
+                        'uh_4'              => ($data_nilai['uh_4'] ?? '') !== '' ? $data_nilai['uh_4'] : null,
+                        'uh_5'              => ($data_nilai['uh_5'] ?? '') !== '' ? $data_nilai['uh_5'] : null,
+                        'pts'               => $pts ?: null,
+                        'pas'               => $pas ?: null,
+                        'remedial'          => $remedial,
+                        'sikap'             => !empty($data_nilai['sikap']) ? $data_nilai['sikap'] : null,
+                        'nilai_pengetahuan' => round($nilai_pengetahuan, 2),
+                        'nilai_akhir'       => round($nilai_akhir, 2),
+                    ]);
             }
         }
 
